@@ -2130,7 +2130,7 @@ class OAuth2WebServerFlow(Flow):
         resp, content = http.request(self.token_uri, method='POST', body=body,
                                      headers=headers)
         d = _parse_exchange_token_response(content)
-        if resp.status == 200 and 'access_token' in d:
+        if (resp.status == 200 or resp.status == 201) and 'access_token' in d:
             access_token = d['access_token']
             refresh_token = d.get('refresh_token', None)
             if not refresh_token:
