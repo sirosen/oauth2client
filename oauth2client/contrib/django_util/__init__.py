@@ -166,7 +166,8 @@ oauth2_authorized signal:
 import django.conf
 from django.core import exceptions
 from django.core import urlresolvers
-import httplib2
+
+from oauth2client import transport
 from oauth2client import clientsecrets
 from oauth2client.contrib.django_util import storage
 from six.moves.urllib import parse
@@ -302,5 +303,5 @@ class UserOAuth2(object):
         """Helper method to create an HTTP client authorized with OAuth2
         credentials"""
         if self.has_credentials():
-            return self.credentials.authorize(httplib2.Http())
+            return self.credentials.authorize(transport.HTTPWrapper())
         return None

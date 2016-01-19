@@ -169,7 +169,6 @@ import pickle
 from functools import wraps
 
 import six.moves.http_client as httplib
-import httplib2
 
 try:
     from flask import Blueprint
@@ -185,6 +184,7 @@ except ImportError:  # pragma: NO COVER
 from oauth2client.client import FlowExchangeError
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.contrib.dictionary_storage import DictionaryStorage
+from oauth2client import transport
 from oauth2client import clientsecrets
 
 
@@ -546,4 +546,5 @@ class UserOAuth2(object):
         """
         if not self.credentials:
             raise ValueError('No credentials available.')
-        return self.credentials.authorize(httplib2.Http(*args, **kwargs))
+        return self.credentials.authorize(
+            transport.HTTPWrapper(*args, **kwargs))

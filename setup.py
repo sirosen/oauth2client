@@ -32,7 +32,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 install_requires = [
-    'httplib2>=0.9.1',
+    'requests>=2.9.1',
     'pyasn1>=0.1.7',
     'pyasn1-modules>=0.0.5',
     'rsa>=3.1.4',

@@ -32,7 +32,7 @@ import shutil
 import six
 from six.moves import urllib
 
-import httplib2
+from oauth2client import transport
 from oauth2client import GOOGLE_AUTH_URI
 from oauth2client import GOOGLE_DEVICE_URI
 from oauth2client import GOOGLE_REVOKE_URI
@@ -180,22 +180,6 @@ class CryptoUnavailableError(Error, NotImplementedError):
 
 def _abstract():
     raise NotImplementedError('You need to override this function')
-
-
-class MemoryCache(object):
-    """httplib2 Cache implementation which only caches locally."""
-
-    def __init__(self):
-        self.cache = {}
-
-    def get(self, key):
-        return self.cache.get(key)
-
-    def set(self, key, value):
-        self.cache[key] = value
-
-    def delete(self, key):
-        self.cache.pop(key, None)
 
 
 class Credentials(object):
@@ -579,9 +563,7 @@ class OAuth2Credentials(Credentials):
         request_orig = http.request
 
         # The closure that will replace 'httplib2.Http.request'.
-        def new_request(uri, method='GET', body=None, headers=None,
-                        redirections=httplib2.DEFAULT_MAX_REDIRECTS,
-                        connection_type=None):
+        def new_request(uri, method='GET', body=None, headers=None):
             if not self.access_token:
                 logger.info('Attempting refresh to obtain '
                             'initial access_token')
@@ -608,8 +590,7 @@ class OAuth2Credentials(Credentials):
                 body_stream_position = body.tell()
 
             resp, content = request_orig(uri, method, body,
-                                         clean_headers(headers),
-                                         redirections, connection_type)
+                                         clean_headers(headers))
 
             # A stored token may expire between the time it is retrieved and
             # the time the request is made, so we may need to try twice.
@@ -626,8 +607,7 @@ class OAuth2Credentials(Credentials):
                     body.seek(body_stream_position)
 
                 resp, content = request_orig(uri, method, body,
-                                             clean_headers(headers),
-                                             redirections, connection_type)
+                                             clean_headers(headers))
 
             return (resp, content)
 
@@ -766,7 +746,7 @@ class OAuth2Credentials(Credentials):
         """
         if not self.access_token or self.access_token_expired:
             if not http:
-                http = httplib2.Http()
+                http = transport.HTTPWrapper()
             self.refresh(http)
         return AccessTokenInfo(access_token=self.access_token,
                                expires_in=self._expires_in())
@@ -1693,10 +1673,6 @@ class SignedJwtAssertionCredentials(AssertionCredentials):
         return crypt.make_signed_jwt(crypt.Signer.from_string(
             private_key, self.private_key_password), payload)
 
-# Only used in verify_id_token(), which is always calling to the same URI
-# for the certs.
-_cached_http = httplib2.Http(MemoryCache())
-
 
 @util.positional(2)
 def verify_id_token(id_token, audience, http=None,
@@ -1723,7 +1699,7 @@ def verify_id_token(id_token, audience, http=None,
     """
     _RequireCryptoOrDie()
     if http is None:
-        http = _cached_http
+        http = transport.HTTPWrapper()
 
     resp, content = http.request(cert_uri)
     if resp.status == 200:
@@ -2066,7 +2042,7 @@ class OAuth2WebServerFlow(Flow):
             headers['user-agent'] = self.user_agent
 
         if http is None:
-            http = httplib2.Http()
+            http = transport.HTTPWrapper()
 
         resp, content = http.request(self.device_uri, method='POST', body=body,
                                      headers=headers)
@@ -2149,7 +2125,7 @@ class OAuth2WebServerFlow(Flow):
             headers['user-agent'] = self.user_agent
 
         if http is None:
-            http = httplib2.Http()
+            http = transport.HTTPWrapper()
 
         resp, content = http.request(self.token_uri, method='POST', body=body,
                                      headers=headers)

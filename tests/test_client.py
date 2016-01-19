@@ -55,7 +55,6 @@ from oauth2client.client import ApplicationDefaultCredentialsError
 from oauth2client.client import FlowExchangeError
 from oauth2client.client import GoogleCredentials
 from oauth2client.client import GOOGLE_APPLICATION_CREDENTIALS
-from oauth2client.client import MemoryCache
 from oauth2client.client import NonAsciiHeaderError
 from oauth2client.client import OAuth2Credentials
 from oauth2client.client import OAuth2WebServerFlow
@@ -1435,18 +1434,6 @@ class CredentialsFromCodeTests(unittest2.TestCase):
             self.fail('should raise exception if exchange doesn\'t get 200')
         except FlowExchangeError:
             pass
-
-
-class MemoryCacheTests(unittest2.TestCase):
-
-    def test_get_set_delete(self):
-        m = MemoryCache()
-        self.assertEqual(None, m.get('foo'))
-        self.assertEqual(None, m.delete('foo'))
-        m.set('foo', 'bar')
-        self.assertEqual('bar', m.get('foo'))
-        m.delete('foo')
-        self.assertEqual(None, m.get('foo'))
 
 
 class Test__save_private_file(unittest2.TestCase):

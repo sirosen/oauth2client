@@ -24,7 +24,6 @@ import os
 import pickle
 import threading
 
-import httplib2
 import webapp2 as webapp
 
 from google.appengine.api import app_identity
@@ -38,6 +37,7 @@ from oauth2client import GOOGLE_REVOKE_URI
 from oauth2client import GOOGLE_TOKEN_URI
 from oauth2client import clientsecrets
 from oauth2client import util
+from oauth2client import transport
 from oauth2client.client import AccessTokenRefreshError
 from oauth2client.client import AssertionCredentials
 from oauth2client.client import Credentials
@@ -852,7 +852,8 @@ class OAuth2Decorator(object):
             *args: Positional arguments passed to httplib2.Http constructor.
             **kwargs: Positional arguments passed to httplib2.Http constructor.
         """
-        return self.credentials.authorize(httplib2.Http(*args, **kwargs))
+        return self.credentials.authorize(
+            transport.HTTPWrapper(*args, **kwargs))
 
     @property
     def callback_path(self):
